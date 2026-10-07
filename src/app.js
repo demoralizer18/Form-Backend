@@ -40,7 +40,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 // Handle preflight requests before rate limiting
-app.options('(.*)', cors(corsOptions));
+app.options('{*path}', cors(corsOptions));
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '16kb' }));
