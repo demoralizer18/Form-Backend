@@ -23,22 +23,24 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map((s) => s.trim());
 
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      // Allow requests with no origin (e.g., curl, Postman) only in dev
-      if (!origin) {
-        if (process.env.NODE_ENV === 'production') return cb(new Error('Origin required'));
-        return cb(null, true);
-      }
-      if (allowedOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error(`CORS: Origin ${origin} not allowed.`));
-    },
-    methods:     ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: (origin, cb) => {
+    // Allow requests with no origin (e.g., curl, Postman) only in dev
+    if (!origin) {
+      if (process.env.NODE_ENV === 'production') return cb(null, false);
+      return cb(null, true);
+    }
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(null, false);
+  },
+  methods:        ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials:    true,
+};
+
+app.use(cors(corsOptions));
+// Handle preflight requests before rate limiting
+app.options('*', cors(corsOptions));
 
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '16kb' }));
